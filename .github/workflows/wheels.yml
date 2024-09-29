@@ -44,7 +44,7 @@ jobs:
           echo 'CIBW_ARCHS=x86_64 universal2' >> $GITHUB_ENV
         if: runner.os == 'macOS'
 
-      - uses: pypa/cibuildwheel@v2.15.0
+      - uses: pypa/cibuildwheel@v2.16.5
         name: Build wheels
         env:
           # cibuildwheel will build wheel once and test it for each CPython version
@@ -78,17 +78,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-20.04, windows-latest, macos-12 ]
+        os: [ ubuntu-20.04, macos-12 ]
         arch: [ multi-arch ]
         # Python 2 on Windows requires manual toolchain setup (per-arch) due to newer MSVC used here
         exclude:
           - os: windows-latest
             arch: multi-arch
-        include:
-          - os: windows-latest
-            arch: x86
-          - os: windows-latest
-            arch: x64
+        #include:
+        #  - os: windows-latest
+        #    arch: x86
+        #  - os: windows-latest
+        #    arch: x64
 
     if: github.actor == 'Legrandin'
 
