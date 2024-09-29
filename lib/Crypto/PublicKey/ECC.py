@@ -826,18 +826,25 @@ def _import_rfc5915_der(encoded, passphrase, curve_oid=None):
     #           publicKey  [1] BIT STRING OPTIONAL
     #    }
 
+    print("************************************************")
+    print("Processing %d bytes" % len(encoded))
+
     ec_private_key = DerSequence().decode(encoded, nr_elements=(2, 3, 4))
     if ec_private_key[0] != 1:
+        print("Incorrect version")
         raise ValueError("Incorrect ECC private key version")
 
     scalar_bytes = DerOctetString().decode(ec_private_key[1]).payload
+    print("Payload is %d bytes" % len(scalar_bytes))
 
     next_element = 2
 
     # Try to decode 'parameters'
     if next_element < len(ec_private_key):
+        print("Decoding parameters")
         try:
             parameters = DerObjectId(explicit=0).decode(ec_private_key[next_element]).value
+            print("Parameters is", parameters)
             if curve_oid is not None and parameters != curve_oid:
                 raise ValueError("Curve mismatch")
             curve_oid = parameters
@@ -846,19 +853,23 @@ def _import_rfc5915_der(encoded, passphrase, curve_oid=None):
             pass
 
     if curve_oid is None:
+        print("No curve_oid")
         raise ValueError("No curve found")
 
     for curve_name, curve in _curves.items():
         if curve.oid == curve_oid:
             break
     else:
+        print("Unknown curve_oid", curve_oid)
         raise UnsupportedEccFeature("Unsupported ECC curve (OID: %s)" % curve_oid)
 
     modulus_bytes = curve.p.size_in_bytes()
     if len(scalar_bytes) != modulus_bytes:
+        print("Small modulus %d bytes", len(modulus_bytes))
         raise ValueError("Private key is too small")
 
     # Try to decode 'publicKey'
+    print("Decode public key")
     point_x = point_y = None
     if next_element < len(ec_private_key):
         try:
